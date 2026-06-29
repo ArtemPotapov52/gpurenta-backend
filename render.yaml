@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: gpurenta-api
+    runtime: go
+    repo: https://github.com/ArtemPotapov52/gpurenta-backend
+    branch: main
+    buildCommand: go build -o app ./cmd/server
+    startCommand: ./app
+    healthCheckPath: /v1/health
+    envVars:
+      - key: JWT_SECRET
+        generateValue: true
+      - key: GOOGLE_CLIENT_ID
+        value: ""
+      - key: FRONTEND_URL
+        value: "*"
+      - fromGroup: gpurenta-db
+
+databases:
+  - name: gpurenta-db
+    databaseName: gpurenta
+    user: gpurenta
+    plan: free
