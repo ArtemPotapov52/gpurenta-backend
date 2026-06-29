@@ -34,7 +34,7 @@ go run ./cmd/server
 | GET | `/v1/health` | — | Health check |
 | GET | `/v1/images` | — | Supported workload images |
 | POST | `/v1/auth/dev` | — | Dev login (no Google) |
-| POST | `/v1/google` | — | Google OAuth login |
+| POST | `/v1/auth/google` | — | Google OAuth login |
 | POST | `/v1/agents/register` | JWT | Register GPU agent |
 | POST | `/v1/agents/heartbeat` | Agent secret | Update agent status |
 | GET | `/v1/gpus` | JWT | List free GPUs |
