@@ -10,6 +10,9 @@ import (
 
 func (s *Store) CreateAgent(ctx context.Context, ownerID, gpuModel, os string, vramGB int, images []string, price int) (*types.Agent, error) {
 	a := &types.Agent{}
+	if images == nil {
+		images = []string{}
+	}
 	err := s.Pool.QueryRow(ctx,
 		`INSERT INTO agents (owner_id, gpu_model, vram_gb, os, supported_images, price_per_hour)
 		 VALUES ($1, $2, $3, $4, $5, $6)
