@@ -89,8 +89,13 @@ func (h *AgentHandler) Heartbeat(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	activeRental, _ := h.Store.GetActiveRentalByAgentID(r.Context(), agentID)
+
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"status":       "ok",
+		"active_rental": activeRental,
+	})
 }
 
 func (h *AgentHandler) GetSupportedImages(w http.ResponseWriter, r *http.Request) {

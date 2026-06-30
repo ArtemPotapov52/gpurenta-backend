@@ -27,15 +27,16 @@ type Agent struct {
 }
 
 type Rental struct {
-	ID        string    `json:"id"`
-	AgentID   string    `json:"agent_id"`
-	RenterID  string    `json:"renter_id"`
-	Image     string    `json:"image"`
-	FrpURL    string    `json:"frp_url,omitempty"`
-	CostCents int       `json:"cost_cents,omitempty"`
-	Status    string    `json:"status"`
-	StartedAt time.Time `json:"started_at"`
-	EndsAt    time.Time `json:"ends_at,omitempty"`
+	ID          string    `json:"id"`
+	AgentID     string    `json:"agent_id"`
+	RenterID    string    `json:"renter_id"`
+	Image       string    `json:"image"`
+	FrpURL      string    `json:"frp_url,omitempty"`
+	AccessToken string    `json:"access_token,omitempty"`
+	CostCents   int       `json:"cost_cents,omitempty"`
+	Status      string    `json:"status"`
+	StartedAt   time.Time `json:"started_at"`
+	EndsAt      time.Time `json:"ends_at,omitempty"`
 }
 
 type WorkloadImage struct {

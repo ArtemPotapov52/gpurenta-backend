@@ -84,12 +84,19 @@ func main() {
 		r.Post("/v1/agents/heartbeat", agentH.Heartbeat)
 	})
 
+	r.Get("/v1/tokens/validate", rentalH.ValidateToken)
+
 	r.Group(func(r chi.Router) {
 		r.Use(middleware.AuthMiddleware(cfg.JWTSecret))
 		r.Get("/v1/gpus", gpuH.List)
 		r.Post("/v1/rentals/start", rentalH.Start)
 		r.Post("/v1/rentals/{id}/stop", rentalH.Stop)
 		r.Get("/v1/rentals/{id}", rentalH.Get)
+	})
+
+	r.Group(func(r chi.Router) {
+		r.Use(middleware.AgentAuthMiddleware)
+		r.Get("/v1/agents/{id}/rentals", rentalH.ListByAgent)
 	})
 
 	webDir := filepath.Join("web")

@@ -102,3 +102,38 @@ func (h *RentalHandler) Get(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(rental)
 }
+
+func (h *RentalHandler) ListByAgent(w http.ResponseWriter, r *http.Request) {
+	agentID := chi.URLParam(r, "id")
+	if agentID == "" {
+		middleware.JSONError(w, "agent id is required", http.StatusBadRequest)
+		return
+	}
+
+	rentals, err := h.Store.ListRentalsByAgentID(r.Context(), agentID)
+	if err != nil {
+		middleware.JSONError(w, "failed to list rentals", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(rentals)
+}
+
+func (h *RentalHandler) ValidateToken(w http.ResponseWriter, r *http.Request) {
+	token := r.URL.Query().Get("token")
+	agentID := r.URL.Query().Get("agent_id")
+	if token == "" || agentID == "" {
+		middleware.JSONError(w, "token and agent_id required", http.StatusBadRequest)
+		return
+	}
+
+	rental, err := h.Store.ValidateRentalToken(r.Context(), agentID, token)
+	if err != nil {
+		middleware.JSONError(w, "invalid token", http.StatusUnauthorized)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(rental)
+}

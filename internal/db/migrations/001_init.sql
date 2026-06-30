@@ -42,3 +42,6 @@ CREATE TABLE IF NOT EXISTS rentals (
 CREATE INDEX IF NOT EXISTS idx_rentals_renter ON rentals(renter_id);
 CREATE INDEX IF NOT EXISTS idx_rentals_agent ON rentals(agent_id);
 CREATE INDEX IF NOT EXISTS idx_rentals_status ON rentals(status);
+
+ALTER TABLE rentals ADD COLUMN IF NOT EXISTS access_token TEXT;
+CREATE INDEX IF NOT EXISTS idx_rentals_token ON rentals(access_token);
