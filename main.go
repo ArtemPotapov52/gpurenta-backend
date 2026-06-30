@@ -45,10 +45,10 @@ func main() {
 	slog.Info("migrations applied")
 
 	go func() {
-		ticker := time.NewTicker(30 * time.Second)
+		ticker := time.NewTicker(10 * time.Second)
 		defer ticker.Stop()
 		for range ticker.C {
-			if err := store.MarkStaleAgentsOffline(context.Background(), 5*time.Minute); err != nil {
+			if err := store.MarkStaleAgentsOffline(context.Background(), 2*time.Minute); err != nil {
 				slog.Error("failed to mark stale agents offline", "error", err)
 			}
 		}
