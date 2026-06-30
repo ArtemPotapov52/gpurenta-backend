@@ -120,6 +120,22 @@ func (h *RentalHandler) ListByAgent(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(rentals)
 }
 
+func (h *RentalHandler) List(w http.ResponseWriter, r *http.Request) {
+	userID := middleware.GetUserID(r.Context())
+	if userID == "" {
+		middleware.JSONError(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+	status := r.URL.Query().Get("status")
+	rentals, err := h.Store.ListRentalsByUserID(r.Context(), userID, status)
+	if err != nil {
+		middleware.JSONError(w, "failed to list rentals", http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(rentals)
+}
+
 func (h *RentalHandler) ValidateToken(w http.ResponseWriter, r *http.Request) {
 	token := r.URL.Query().Get("token")
 	agentID := r.URL.Query().Get("agent_id")

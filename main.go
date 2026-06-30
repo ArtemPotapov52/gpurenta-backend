@@ -93,6 +93,7 @@ func main() {
 	r.Group(func(r chi.Router) {
 		r.Use(middleware.AuthMiddleware(cfg.JWTSecret))
 		r.Get("/v1/gpus", gpuH.List)
+		r.Get("/v1/rentals", rentalH.List)
 		r.Post("/v1/rentals/start", rentalH.Start)
 		r.Post("/v1/rentals/{id}/stop", rentalH.Stop)
 		r.Get("/v1/rentals/{id}", rentalH.Get)

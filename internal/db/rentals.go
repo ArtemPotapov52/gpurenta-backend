@@ -113,6 +113,34 @@ func (s *Store) ListRentalsByAgentID(ctx context.Context, agentID string) ([]typ
 	return rentals, nil
 }
 
+func (s *Store) ListRentalsByUserID(ctx context.Context, userID, status string) ([]types.Rental, error) {
+	query := `SELECT id, agent_id, renter_id, image, frp_url, access_token, cost_cents, status, started_at, ends_at
+		 FROM rentals WHERE renter_id = $1`
+	args := []interface{}{userID}
+	argIdx := 2
+	if status != "" {
+		query += fmt.Sprintf(" AND status = $%d", argIdx)
+		args = append(args, status)
+	}
+	query += ` ORDER BY started_at DESC`
+
+	rows, err := s.Pool.Query(ctx, query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("list user rentals: %w", err)
+	}
+	defer rows.Close()
+
+	var rentals []types.Rental
+	for rows.Next() {
+		var r types.Rental
+		if err := rows.Scan(&r.ID, &r.AgentID, &r.RenterID, &r.Image, &r.FrpURL, &r.AccessToken, &r.CostCents, &r.Status, &r.StartedAt, &r.EndsAt); err != nil {
+			return nil, fmt.Errorf("scan rental: %w", err)
+		}
+		rentals = append(rentals, r)
+	}
+	return rentals, nil
+}
+
 func (s *Store) ValidateRentalToken(ctx context.Context, agentID, token string) (*types.Rental, error) {
 	r := &types.Rental{}
 	err := s.Pool.QueryRow(ctx,
