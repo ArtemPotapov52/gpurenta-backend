@@ -15,9 +15,19 @@ type GoogleUser struct {
 	EmailVerified bool   `json:"email_verified"`
 }
 
+// VerifyToken verifies a Google-issued access_token via the userinfo API.
 func VerifyToken(accessToken string) (*GoogleUser, error) {
 	url := fmt.Sprintf("https://www.googleapis.com/oauth2/v3/userinfo?access_token=%s", accessToken)
+	return callGoogleAPI(url)
+}
 
+// VerifyIDToken verifies a Google id_token (credential from GIS) via the tokeninfo endpoint.
+func VerifyIDToken(idToken string) (*GoogleUser, error) {
+	url := fmt.Sprintf("https://oauth2.googleapis.com/tokeninfo?id_token=%s", idToken)
+	return callGoogleAPI(url)
+}
+
+func callGoogleAPI(url string) (*GoogleUser, error) {
 	client := &http.Client{Timeout: 10 * time.Second}
 	resp, err := client.Get(url)
 	if err != nil {
