@@ -51,6 +51,9 @@ func main() {
 			if err := store.MarkStaleAgentsOffline(context.Background(), 2*time.Minute); err != nil {
 				slog.Error("failed to mark stale agents offline", "error", err)
 			}
+			if err := store.ExpireRentals(context.Background()); err != nil {
+				slog.Error("failed to expire rentals", "error", err)
+			}
 		}
 	}()
 

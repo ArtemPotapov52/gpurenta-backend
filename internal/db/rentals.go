@@ -45,6 +45,7 @@ func (s *Store) GetRentalByID(ctx context.Context, id string) (*types.Rental, er
 	return r, nil
 }
 
+// StopRental marks a rental as completed. Idempotent: if already completed, returns it.
 func (s *Store) StopRental(ctx context.Context, id string) (*types.Rental, error) {
 	r := &types.Rental{}
 	now := time.Now()
@@ -56,21 +57,39 @@ func (s *Store) StopRental(ctx context.Context, id string) (*types.Rental, error
 		id, now,
 	).Scan(&r.ID, &r.AgentID, &r.RenterID, &r.Image, &r.FrpURL, &r.AccessToken, &r.CostCents, &r.Status, &r.StartedAt, &r.EndsAt)
 	if err != nil {
-		return nil, fmt.Errorf("stop rental: %w", err)
+		// If not found (already completed), fetch it
+		existing, getErr := s.GetRentalByID(ctx, id)
+		if getErr != nil {
+			return nil, fmt.Errorf("stop rental: %w", err)
+		}
+		return existing, nil
 	}
 	return r, nil
 }
 
+// GetActiveRentalByAgentID returns the active rental for a GPU.
+// A rental is active only if status='active' AND ends_at is in the future.
 func (s *Store) GetActiveRentalByAgentID(ctx context.Context, agentID string) (*types.Rental, error) {
 	r := &types.Rental{}
 	err := s.Pool.QueryRow(ctx,
 		`SELECT id, agent_id, renter_id, image, frp_url, access_token, cost_cents, status, started_at, ends_at
-		 FROM rentals WHERE agent_id = $1 AND status = 'active' LIMIT 1`, agentID,
+		 FROM rentals WHERE agent_id = $1 AND status = 'active' AND ends_at > NOW() LIMIT 1`, agentID,
 	).Scan(&r.ID, &r.AgentID, &r.RenterID, &r.Image, &r.FrpURL, &r.AccessToken, &r.CostCents, &r.Status, &r.StartedAt, &r.EndsAt)
 	if err != nil {
 		return nil, fmt.Errorf("get active rental: %w", err)
 	}
 	return r, nil
+}
+
+// ExpireRentals marks all active rentals past their ends_at as completed.
+func (s *Store) ExpireRentals(ctx context.Context) error {
+	now := time.Now()
+	_, err := s.Pool.Exec(ctx,
+		`UPDATE rentals SET status = 'completed', ends_at = $1,
+		 cost_cents = EXTRACT(EPOCH FROM $1 - started_at)::int / 36
+		 WHERE status = 'active' AND ends_at <= $1`, now,
+	)
+	return err
 }
 
 func (s *Store) ListRentalsByAgentID(ctx context.Context, agentID string) ([]types.Rental, error) {
@@ -98,7 +117,7 @@ func (s *Store) ValidateRentalToken(ctx context.Context, agentID, token string) 
 	r := &types.Rental{}
 	err := s.Pool.QueryRow(ctx,
 		`SELECT id, agent_id, renter_id, image, frp_url, access_token, cost_cents, status, started_at, ends_at
-		 FROM rentals WHERE agent_id = $1 AND access_token = $2 AND status = 'active' LIMIT 1`,
+		 FROM rentals WHERE agent_id = $1 AND access_token = $2 AND status = 'active' AND ends_at > NOW() LIMIT 1`,
 		agentID, token,
 	).Scan(&r.ID, &r.AgentID, &r.RenterID, &r.Image, &r.FrpURL, &r.AccessToken, &r.CostCents, &r.Status, &r.StartedAt, &r.EndsAt)
 	if err != nil {
