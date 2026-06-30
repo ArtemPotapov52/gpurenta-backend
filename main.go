@@ -82,6 +82,7 @@ func main() {
 	r.Group(func(r chi.Router) {
 		r.Use(middleware.AgentAuthMiddleware)
 		r.Post("/v1/agents/heartbeat", agentH.Heartbeat)
+		r.Post("/v1/agents/offline", agentH.GoOffline)
 	})
 
 	r.Get("/v1/tokens/validate", rentalH.ValidateToken)
