@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/ArtemPotapov52/gpurenta-backend/internal/types"
+	"github.com/ArtemPotapov52/gpurenta/internal/types"
 )
 
 func (s *Store) FindUserByGoogleID(ctx context.Context, googleID string) (*types.User, error) {

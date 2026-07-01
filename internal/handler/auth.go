@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/ArtemPotapov52/gpurenta-backend/internal/auth"
-	"github.com/ArtemPotapov52/gpurenta-backend/internal/db"
-	"github.com/ArtemPotapov52/gpurenta-backend/internal/middleware"
+	"github.com/ArtemPotapov52/gpurenta/internal/auth"
+	"github.com/ArtemPotapov52/gpurenta/internal/db"
+	"github.com/ArtemPotapov52/gpurenta/internal/middleware"
 )
 
 type AuthHandler struct {
@@ -16,7 +16,6 @@ type AuthHandler struct {
 
 type authRequest struct {
 	AccessToken string `json:"access_token"`
-	IDToken     string `json:"id_token"`
 }
 
 type authResponse struct {
@@ -25,10 +24,9 @@ type authResponse struct {
 }
 
 type authUser struct {
-	ID      string `json:"id"`
-	Email   string `json:"email"`
-	Name    string `json:"name"`
-	Picture string `json:"picture,omitempty"`
+	ID    string `json:"id"`
+	Email string `json:"email"`
+	Name  string `json:"name"`
 }
 
 func (h *AuthHandler) DevLogin(w http.ResponseWriter, r *http.Request) {
@@ -59,19 +57,12 @@ func (h *AuthHandler) Google(w http.ResponseWriter, r *http.Request) {
 		middleware.JSONError(w, "invalid request body", http.StatusBadRequest)
 		return
 	}
-
-	var googleUser *auth.GoogleUser
-	var err error
-
-	if req.IDToken != "" {
-		googleUser, err = auth.VerifyIDToken(req.IDToken)
-	} else if req.AccessToken != "" {
-		googleUser, err = auth.VerifyToken(req.AccessToken)
-	} else {
-		middleware.JSONError(w, "access_token or id_token is required", http.StatusBadRequest)
+	if req.AccessToken == "" {
+		middleware.JSONError(w, "access_token is required", http.StatusBadRequest)
 		return
 	}
 
+	googleUser, err := auth.VerifyToken(req.AccessToken)
 	if err != nil {
 		middleware.JSONError(w, "invalid google token: "+err.Error(), http.StatusUnauthorized)
 		return
@@ -95,10 +86,9 @@ func (h *AuthHandler) Google(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(authResponse{
 		Token: token,
 		User: &authUser{
-			ID:      user.ID,
-			Email:   user.Email,
-			Name:    user.Name,
-			Picture: googleUser.Picture,
+			ID:    user.ID,
+			Email: user.Email,
+			Name:  user.Name,
 		},
 	})
 }

@@ -5,14 +5,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/ArtemPotapov52/gpurenta-backend/internal/types"
+	"github.com/ArtemPotapov52/gpurenta/internal/types"
 )
 
 func (s *Store) CreateAgent(ctx context.Context, ownerID, gpuModel, os string, vramGB int, images []string, price int) (*types.Agent, error) {
 	a := &types.Agent{}
-	if images == nil {
-		images = []string{}
-	}
 	err := s.Pool.QueryRow(ctx,
 		`INSERT INTO agents (owner_id, gpu_model, vram_gb, os, supported_images, price_per_hour)
 		 VALUES ($1, $2, $3, $4, $5, $6)
@@ -59,7 +56,7 @@ func (s *Store) Heartbeat(ctx context.Context, agentID, frpURL string) error {
 }
 
 func (s *Store) ListOnlineGPUs(ctx context.Context, minVRAM int, imageFilter string) ([]types.Agent, error) {
-	q := `SELECT id, owner_id, gpu_model, vram_gb, os, COALESCE(frp_url, ''), status, supported_images, price_per_hour, secret, last_heartbeat, created_at
+	q := `SELECT id, owner_id, gpu_model, vram_gb, os, COALESCE(frp_url, ''), status, supported_images, price_per_hour, last_heartbeat, created_at
 		  FROM agents WHERE status = 'online'
 		  AND (SELECT COUNT(*) FROM rentals WHERE agent_id = agents.id AND status = 'active') = 0`
 	args := []interface{}{}
@@ -86,7 +83,7 @@ func (s *Store) ListOnlineGPUs(ctx context.Context, minVRAM int, imageFilter str
 	var agents []types.Agent
 	for rows.Next() {
 		var a types.Agent
-		if err := rows.Scan(&a.ID, &a.OwnerID, &a.GPUModel, &a.VRAMGB, &a.OS, &a.FRPURL, &a.Status, &a.SupportedImages, &a.PricePerHour, &a.Secret, &a.LastHeartbeat, &a.CreatedAt); err != nil {
+		if err := rows.Scan(&a.ID, &a.OwnerID, &a.GPUModel, &a.VRAMGB, &a.OS, &a.FRPURL, &a.Status, &a.SupportedImages, &a.PricePerHour, &a.LastHeartbeat, &a.CreatedAt); err != nil {
 			return nil, fmt.Errorf("scan agent: %w", err)
 		}
 		agents = append(agents, a)

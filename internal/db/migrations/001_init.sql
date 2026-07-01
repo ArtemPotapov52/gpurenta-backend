@@ -24,8 +24,8 @@ CREATE TABLE IF NOT EXISTS agents (
     created_at       TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE INDEX IF NOT EXISTS idx_agents_status ON agents(status);
-CREATE INDEX IF NOT EXISTS idx_agents_owner ON agents(owner_id);
+CREATE INDEX idx_agents_status ON agents(status);
+CREATE INDEX idx_agents_owner ON agents(owner_id);
 
 CREATE TABLE IF NOT EXISTS rentals (
     id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -39,9 +39,6 @@ CREATE TABLE IF NOT EXISTS rentals (
     ends_at    TIMESTAMPTZ
 );
 
-CREATE INDEX IF NOT EXISTS idx_rentals_renter ON rentals(renter_id);
-CREATE INDEX IF NOT EXISTS idx_rentals_agent ON rentals(agent_id);
-CREATE INDEX IF NOT EXISTS idx_rentals_status ON rentals(status);
-
-ALTER TABLE rentals ADD COLUMN IF NOT EXISTS access_token TEXT;
-CREATE INDEX IF NOT EXISTS idx_rentals_token ON rentals(access_token);
+CREATE INDEX idx_rentals_renter ON rentals(renter_id);
+CREATE INDEX idx_rentals_agent ON rentals(agent_id);
+CREATE INDEX idx_rentals_status ON rentals(status);

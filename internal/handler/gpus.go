@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/ArtemPotapov52/gpurenta-backend/internal/db"
-	"github.com/ArtemPotapov52/gpurenta-backend/internal/types"
+	"github.com/ArtemPotapov52/gpurenta/internal/db"
+	"github.com/ArtemPotapov52/gpurenta/internal/types"
 )
 
 type GPUHandler struct {

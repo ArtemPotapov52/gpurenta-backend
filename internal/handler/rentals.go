@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/ArtemPotapov52/gpurenta-backend/internal/db"
-	"github.com/ArtemPotapov52/gpurenta-backend/internal/middleware"
+	"github.com/ArtemPotapov52/gpurenta/internal/db"
+	"github.com/ArtemPotapov52/gpurenta/internal/middleware"
 	"github.com/go-chi/chi/v5"
 )
 
@@ -46,7 +46,11 @@ func (h *RentalHandler) Start(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	activeRental, _ := h.Store.GetActiveRentalByAgentID(r.Context(), req.AgentID)
+	activeRental, err := h.Store.GetActiveRentalByAgentID(r.Context(), req.AgentID)
+	if err != nil && err.Error() != "get active rental: no rows in result set" {
+		middleware.JSONError(w, "failed to check existing rental", http.StatusInternalServerError)
+		return
+	}
 	if activeRental != nil {
 		middleware.JSONError(w, "GPU is already rented", http.StatusConflict)
 		return
@@ -96,57 +100,6 @@ func (h *RentalHandler) Get(w http.ResponseWriter, r *http.Request) {
 	rental, err := h.Store.GetRentalByID(r.Context(), rentalID)
 	if err != nil {
 		middleware.JSONError(w, "rental not found", http.StatusNotFound)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(rental)
-}
-
-func (h *RentalHandler) ListByAgent(w http.ResponseWriter, r *http.Request) {
-	agentID := chi.URLParam(r, "id")
-	if agentID == "" {
-		middleware.JSONError(w, "agent id is required", http.StatusBadRequest)
-		return
-	}
-
-	rentals, err := h.Store.ListRentalsByAgentID(r.Context(), agentID)
-	if err != nil {
-		middleware.JSONError(w, "failed to list rentals", http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(rentals)
-}
-
-func (h *RentalHandler) List(w http.ResponseWriter, r *http.Request) {
-	userID := middleware.GetUserID(r.Context())
-	if userID == "" {
-		middleware.JSONError(w, "unauthorized", http.StatusUnauthorized)
-		return
-	}
-	status := r.URL.Query().Get("status")
-	rentals, err := h.Store.ListRentalsByUserID(r.Context(), userID, status)
-	if err != nil {
-		middleware.JSONError(w, "failed to list rentals", http.StatusInternalServerError)
-		return
-	}
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(rentals)
-}
-
-func (h *RentalHandler) ValidateToken(w http.ResponseWriter, r *http.Request) {
-	token := r.URL.Query().Get("token")
-	agentID := r.URL.Query().Get("agent_id")
-	if token == "" || agentID == "" {
-		middleware.JSONError(w, "token and agent_id required", http.StatusBadRequest)
-		return
-	}
-
-	rental, err := h.Store.ValidateRentalToken(r.Context(), agentID, token)
-	if err != nil {
-		middleware.JSONError(w, "invalid token", http.StatusUnauthorized)
 		return
 	}
 

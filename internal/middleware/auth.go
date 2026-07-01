@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/ArtemPotapov52/gpurenta-backend/internal/auth"
+	"github.com/ArtemPotapov52/gpurenta/internal/auth"
 )
 
 func AuthMiddleware(jwtSecret string) func(http.Handler) http.Handler {

@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/ArtemPotapov52/gpurenta-backend/internal/db"
-	"github.com/ArtemPotapov52/gpurenta-backend/internal/middleware"
-	"github.com/ArtemPotapov52/gpurenta-backend/internal/types"
+	"github.com/ArtemPotapov52/gpurenta/internal/db"
+	"github.com/ArtemPotapov52/gpurenta/internal/middleware"
+	"github.com/ArtemPotapov52/gpurenta/internal/types"
 )
 
 type AgentHandler struct {
@@ -86,34 +86,6 @@ func (h *AgentHandler) Heartbeat(w http.ResponseWriter, r *http.Request) {
 
 	if err := h.Store.Heartbeat(r.Context(), agentID, req.FRPURL); err != nil {
 		middleware.JSONError(w, "failed to update heartbeat", http.StatusInternalServerError)
-		return
-	}
-
-	activeRental, _ := h.Store.GetActiveRentalByAgentID(r.Context(), agentID)
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"status":       "ok",
-		"active_rental": activeRental,
-	})
-}
-
-func (h *AgentHandler) GoOffline(w http.ResponseWriter, r *http.Request) {
-	agentID := r.Header.Get("X-Agent-ID")
-	agentSecret := r.Header.Get("X-Agent-Secret")
-	if agentID == "" || agentSecret == "" {
-		middleware.JSONError(w, "missing agent credentials", http.StatusUnauthorized)
-		return
-	}
-
-	_, err := h.Store.GetAgentBySecret(r.Context(), agentID, agentSecret)
-	if err != nil {
-		middleware.JSONError(w, "invalid agent credentials", http.StatusUnauthorized)
-		return
-	}
-
-	if err := h.Store.MarkAgentOffline(r.Context(), agentID); err != nil {
-		middleware.JSONError(w, "failed to go offline", http.StatusInternalServerError)
 		return
 	}
 

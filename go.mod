@@ -1,4 +1,4 @@
-module github.com/ArtemPotapov52/gpurenta-backend
+module github.com/ArtemPotapov52/gpurenta
 
 go 1.26.3
 
