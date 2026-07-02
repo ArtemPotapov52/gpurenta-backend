@@ -16,6 +16,7 @@ type AuthHandler struct {
 
 type authRequest struct {
 	AccessToken string `json:"access_token"`
+	IDToken     string `json:"id_token"`
 }
 
 type authResponse struct {
@@ -57,12 +58,19 @@ func (h *AuthHandler) Google(w http.ResponseWriter, r *http.Request) {
 		middleware.JSONError(w, "invalid request body", http.StatusBadRequest)
 		return
 	}
-	if req.AccessToken == "" {
-		middleware.JSONError(w, "access_token is required", http.StatusBadRequest)
+
+	var googleUser *auth.GoogleUser
+	var err error
+
+	if req.AccessToken != "" {
+		googleUser, err = auth.VerifyToken(req.AccessToken)
+	} else if req.IDToken != "" {
+		googleUser, err = auth.VerifyIDToken(req.IDToken)
+	} else {
+		middleware.JSONError(w, "access_token or id_token is required", http.StatusBadRequest)
 		return
 	}
 
-	googleUser, err := auth.VerifyToken(req.AccessToken)
 	if err != nil {
 		middleware.JSONError(w, "invalid google token: "+err.Error(), http.StatusUnauthorized)
 		return
