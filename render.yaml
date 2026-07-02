@@ -4,6 +4,8 @@ services:
     runtime: go
     repo: https://github.com/ArtemPotapov52/gpurenta-backend
     branch: main
+    buildCommand: go build -tags netgo -ldflags '-s -w' -o app ./cmd/server
+    startCommand: ./app
     healthCheckPath: /v1/health
     envVars:
       - key: JWT_SECRET
