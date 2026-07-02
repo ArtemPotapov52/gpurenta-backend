@@ -93,6 +93,27 @@ func (h *AgentHandler) Heartbeat(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
 }
 
+func (h *AgentHandler) ListMyAgents(w http.ResponseWriter, r *http.Request) {
+	userID := middleware.GetUserID(r.Context())
+	if userID == "" {
+		middleware.JSONError(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	agents, err := h.Store.ListMyAgents(r.Context(), userID)
+	if err != nil {
+		middleware.JSONError(w, "failed to list agents: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if agents == nil {
+		agents = []types.Agent{}
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(agents)
+}
+
 func (h *AgentHandler) GetSupportedImages(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(types.SupportedImages)

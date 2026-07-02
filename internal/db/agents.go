@@ -91,6 +91,27 @@ func (s *Store) ListOnlineGPUs(ctx context.Context, minVRAM int, imageFilter str
 	return agents, nil
 }
 
+func (s *Store) ListMyAgents(ctx context.Context, userID string) ([]types.Agent, error) {
+	rows, err := s.Pool.Query(ctx,
+		`SELECT id, owner_id, gpu_model, vram_gb, os, COALESCE(frp_url, ''), status, supported_images, price_per_hour, secret, last_heartbeat, created_at
+		 FROM agents WHERE owner_id = $1 ORDER BY created_at DESC`, userID,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("list my agents: %w", err)
+	}
+	defer rows.Close()
+
+	var agents []types.Agent
+	for rows.Next() {
+		var a types.Agent
+		if err := rows.Scan(&a.ID, &a.OwnerID, &a.GPUModel, &a.VRAMGB, &a.OS, &a.FRPURL, &a.Status, &a.SupportedImages, &a.PricePerHour, &a.Secret, &a.LastHeartbeat, &a.CreatedAt); err != nil {
+			return nil, fmt.Errorf("scan my agent: %w", err)
+		}
+		agents = append(agents, a)
+	}
+	return agents, nil
+}
+
 func (s *Store) MarkAgentOffline(ctx context.Context, agentID string) error {
 	_, err := s.Pool.Exec(ctx, `UPDATE agents SET status = 'offline' WHERE id = $1`, agentID)
 	return err

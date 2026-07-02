@@ -71,6 +71,7 @@ func main() {
 	r.Group(func(r chi.Router) {
 		r.Use(middleware.AuthMiddleware(cfg.JWTSecret))
 		r.Post("/v1/agents/register", agentH.Register)
+		r.Get("/v1/agents/my", agentH.ListMyAgents)
 	})
 
 	r.Group(func(r chi.Router) {
