@@ -3,6 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"github.com/ArtemPotapov52/gpurenta/internal/db"
 	"github.com/ArtemPotapov52/gpurenta/internal/middleware"
@@ -24,6 +25,21 @@ type registerRequest struct {
 type registerResponse struct {
 	AgentID string `json:"agent_id"`
 	Secret  string `json:"secret"`
+}
+
+type agentWithSecret struct {
+	ID              string     `json:"id"`
+	OwnerID         string     `json:"owner_id"`
+	GPUModel        string     `json:"gpu_model"`
+	VRAMGB          int        `json:"vram_gb"`
+	OS              string     `json:"os"`
+	FRPURL          string     `json:"frp_url,omitempty"`
+	Status          string     `json:"status"`
+	SupportedImages []string   `json:"supported_images"`
+	PricePerHour    int        `json:"price_per_hour"`
+	Secret          string     `json:"secret"`
+	LastHeartbeat   *time.Time `json:"last_heartbeat,omitempty"`
+	CreatedAt       time.Time  `json:"created_at"`
 }
 
 type heartbeatRequest struct {
@@ -110,8 +126,26 @@ func (h *AgentHandler) ListMyAgents(w http.ResponseWriter, r *http.Request) {
 		agents = []types.Agent{}
 	}
 
+	result := make([]agentWithSecret, len(agents))
+	for i, a := range agents {
+		result[i] = agentWithSecret{
+			ID:              a.ID,
+			OwnerID:         a.OwnerID,
+			GPUModel:        a.GPUModel,
+			VRAMGB:          a.VRAMGB,
+			OS:              a.OS,
+			FRPURL:          a.FRPURL,
+			Status:          a.Status,
+			SupportedImages: a.SupportedImages,
+			PricePerHour:    a.PricePerHour,
+			Secret:          a.Secret,
+			LastHeartbeat:   a.LastHeartbeat,
+			CreatedAt:       a.CreatedAt,
+		}
+	}
+
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(agents)
+	json.NewEncoder(w).Encode(result)
 }
 
 func (h *AgentHandler) GetSupportedImages(w http.ResponseWriter, r *http.Request) {
